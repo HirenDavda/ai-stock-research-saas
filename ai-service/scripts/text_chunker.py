@@ -6,14 +6,18 @@ from langchain_text_splitters import RecursiveCharacterTextSplitter
 from document_loader import load_pdf
 
 # Function to split text into chunks
-def split_chunk_text_into_chunks(text):
+def split_text_into_chunks(text):
+    # Remove extra spaces and new lines
+    text = text.replace("\n", " ").strip()
 
     # Create a text splitter object
     # chunk_size = maximum characters in one chunk
     # chunk_overlap = small overlap between chunks to keep context
+    # Bigger chunks for financial documents
+    # This keeps more context like full paragraphs
     text_splitter = RecursiveCharacterTextSplitter(
-        chunk_size = 1000,
-        chunk_overlap = 200
+        chunk_size = 2000, # Larger chunk = more meaning in one piece
+        chunk_overlap = 300 # Keep overlap for continuity
     )
 
     # Split the full text into smaller chunks
