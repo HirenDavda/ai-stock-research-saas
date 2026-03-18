@@ -35,3 +35,4 @@ def search_query(query):
 
 if __name__ == "__main__":
     search_query("What are the risks mentioned by the company?")
+    
