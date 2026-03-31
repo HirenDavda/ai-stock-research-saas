@@ -6,28 +6,25 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
+
 # -------------------
 # Python
 # -------------------
-venv/
+
 __pycache__/
 *.pyc
 *.pyo
 *.pyd
+*.log
 
 # -------------------
 # Environment variables
 # -------------------
+venv/
 .env
 .env.local
 .env.development
 .env.production
-
-# -------------------
-# Logs
-# -------------------
-logs/
-*.log
 
 # -------------------
 # Build folders
@@ -53,5 +50,33 @@ Thumbs.db
 # -------------------
 docker-compose.override.yml
 
-# Vector database
+# ========================
+# Vector Database
+# ========================
+chroma_db/
 db/
+
+# ========================
+# Data Files
+# ========================
+data/
+db/*.db
+db/*.sqlite
+
+# ========================
+# Logs
+# ========================
+logs/
+*.log
+
+# ========================
+# Generated Files
+# ========================
+chunks_output.txt
+
+# ========================
+# IDE
+# ========================
+.vscode/
+.idea/
+
