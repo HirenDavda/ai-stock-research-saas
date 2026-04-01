@@ -53,8 +53,10 @@ docker-compose.override.yml
 # ========================
 # Vector Database
 # ========================
-chroma_db/
 db/
+chroma_db/
+*.bin
+*.sqlite3
 
 # ========================
 # Data Files

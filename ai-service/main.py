@@ -27,6 +27,10 @@ from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_community.document_loaders import PyPDFLoader
 from pydantic import BaseModel, Field
 from pymongo import MongoClient
+from database.mongo import (
+    connect_to_mongo,
+    close_mongo_connection,
+)
 
 # -----------------------------------------------------
 # Logging Setup
@@ -39,6 +43,17 @@ logger = logging.getLogger(__name__)
 # -----------------------------------------------------
 @asynccontextmanager
 async def lifespan(app):
+    # Startup
+    connect_to_mongo()
+    print("Application startup complete")
+
+    yield
+
+    # Shutdown
+    close_mongo_connection()
+    print("Application shutdown complete")
+    logger.info("Application shutdown complete")
+    
     """
     Application startup and shutdown handler
     """
