@@ -11,6 +11,8 @@ uvicorn
 langchain
 langchain-community
 langchain-openai
+openai
+sentence-transformers
 
 # Vector database (updated version you used)
 langchain-chroma

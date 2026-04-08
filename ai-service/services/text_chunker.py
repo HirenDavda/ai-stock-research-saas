@@ -3,7 +3,7 @@
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 
 # Import our PDF loader function
-from services.document_loader import load_pdf
+from services.document_loader import load_document
 
 # Function to split text into chunks
 def split_text_into_chunks(text):
@@ -31,7 +31,7 @@ if __name__ == "__main__":
     pdf_file_path = "../data/dodla_dairy_annual_report_2025.pdf"
 
     # Load text from the PDF
-    document_text = load_pdf(pdf_file_path)
+    document_text = load_document(pdf_file_path)
 
     # Split the text into chunks
     document_chunks = split_chunk_text_into_chunks(document_text)

@@ -13,14 +13,18 @@ from config import (
     MONGO_DOC_COLLECTION
 )
 
-from datetime import datetime
 from bson import ObjectId
-
+from datetime import datetime
 
 client = None
 db = None
 collection = None
 
+STATUS_UPLOADED = "uploaded"
+STATUS_PROCESSING = "processing"
+STATUS_COMPLETED = "completed"
+STATUS_FAILED = "failed"
+STATUS_DELETED = "deleted"
 
 def connect_to_mongo():
 
@@ -77,16 +81,17 @@ def get_database():
     Get MongoDB database instance
     """
 
+    global db
+
     if db is None:
         print("Database not initialized — connecting now...")
         connect_to_mongo()
     
+    if db is None:
+        raise RuntimeError("MongoDB connection failed")
+
     return db
 
-    # if mongo_client is None:
-    #     raise RuntimeError("MongoDB not connected")
-
-    # return mongo_client[MONGO_DB_NAME]
 
 def get_document_collection():
     """
@@ -109,12 +114,23 @@ def save_document_metadata(
     collection = get_document_collection()
     
     document = {
+        "workspace_id": None,
+
+        "industry": None,
+        
+        "document_type": None,
+        
+        "tags": [],
+        
         "filename": filename,
+        
         "file_path": file_path,
+        
         "file_size": file_size,
+        
         "content_type": content_type,
 
-        "status": "uploaded",
+        "status": STATUS_UPLOADED,
 
         "upload_time": datetime.utcnow(),
 
@@ -178,5 +194,35 @@ def delete_document_metadata(document_id: str):
             } 
         },
     )
+
+    return result.modified_count
+
+
+def update_document_status(
+    document_id: str,
+    status: str,
+    error: str | None = None
+):
+    """
+    Update document processing status
+    """
+
+    collection = get_document_collection()
+
+    update_fields = {
+        "status": status,
+        "updated_at": datetime.utcnow(),
+    }
+
+    if error:
+        update_fields["error"] = error
+
+    result = collection.update_one(
+        { "_id": ObjectId(document_id) },
+        { "$set": update_fields }
+    )    
+
+    if result.modified_count == 1:
+        print("Document status updated:", status)
 
     return result.modified_count

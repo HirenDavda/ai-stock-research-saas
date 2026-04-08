@@ -24,14 +24,14 @@ from config import (
 
 # Import our chunking function
 from services.text_chunker import split_text_into_chunks
-from services.document_loader import load_pdf
+from services.document_loader import load_document
 
 # def get_vector_store():
 #     print("--- Starting Ingestion ---")
 
 #     # Step 1: Load PDF
 #     pdf_path = "../data/dodla_dairy_annual_report_2025.pdf"
-#     text = load_pdf(pdf_path)
+#     text = load_document(pdf_path)
 #     print(f"Loaded {len(text)} documents.")
 
 #     # Step 2: Split into chunks
