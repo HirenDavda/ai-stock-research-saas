@@ -15,6 +15,8 @@ from database.mongo import (
     STATUS_FAILED
 )
 
+from database.vector_store import save_document_chunks
+
 def process_document(document_id: str):
     """
     Main document processing pipeline
@@ -44,6 +46,14 @@ def process_document(document_id: str):
         print("Step 4 — Generating embeddings")
         embeddings = generate_embeddings_batch(chunks)
         print("Embeddings created:", len(embeddings))
+
+        print("Storing vectors...")
+        save_document_chunks(
+            document_id=document_id,
+            chunks=chunks,
+            embeddings=embeddings
+        )
+
 
         # Step 5 — mark completed
         update_document_status(
