@@ -7,6 +7,11 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 
+from database.mongo import (
+    connect_to_mongo,
+    close_mongo_connection
+)
+
 from api import router
 from services.llm import get_llm
 from config import (
@@ -27,10 +32,7 @@ from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_community.document_loaders import PyPDFLoader
 from pydantic import BaseModel, Field
 from pymongo import MongoClient
-from database.mongo import (
-    connect_to_mongo,
-    close_mongo_connection,
-)
+
 
 # -----------------------------------------------------
 # Logging Setup
@@ -41,18 +43,20 @@ logger = logging.getLogger(__name__)
 # -----------------------------------------------------
 # Startup Initialization (Performance Optimization)
 # -----------------------------------------------------
+
+
 @asynccontextmanager
 async def lifespan(app):
     # Startup
-    connect_to_mongo()
-    print("Application startup complete")
+    # connect_to_mongo()
+    # print("Application startup complete")
 
     yield
 
     # Shutdown
-    close_mongo_connection()
-    print("Application shutdown complete")
-    logger.info("Application shutdown complete")
+    # close_mongo_connection()
+    # print("Application shutdown complete")
+    # logger.info("Application shutdown complete")
     
     """
     Application startup and shutdown handler
@@ -94,6 +98,16 @@ app = FastAPI(
     version="1.0.0",
     lifespan=lifespan
 )
+
+@app.on_event("startup")
+def startup_event():
+    print("Starting application...")
+    connect_to_mongo()
+
+@app.on_event("shutdown")
+def shutdown_event():
+    print("Shutting down application...")
+    close_mongo_connection()    
 
 # Enable CORS (required for frontend integration)
 app.add_middleware(

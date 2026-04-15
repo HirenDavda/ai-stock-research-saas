@@ -1,62 +1,45 @@
 import os
 from dotenv import load_dotenv
 
-# Import embedding model (converts text to meaning-based numbers)
-# from langchain_openai import OpenAIEmbeddings
-from langchain_huggingface import HuggingFaceEmbeddings
-
-# Import vector database (where our document knowledge is stored)
-from langchain_chroma import Chroma
-
-# Import Chat model (this generates final human-like answers)
-# from langchain_openai import ChatOpenAI
-
+from database.chroma_client import collection
 from langchain_google_genai import ChatGoogleGenerativeAI
 
+from config import RAG_TOP_K
+from services.embedding_service import get_embedding
 
-# Load environment variables (API key)
+TEMPERATURE = float(os.getenv("TEMPERATURE", 0.3))
+
 load_dotenv()
 
 
-# Function to answer user question
 def ask_question(question):
-    # Step 1: Load embedding model
-    # This helps search similar meaning text in our document database
-    
-    # embeddings = OpenAIEmbeddings()
-    embeddings = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
+    """
+    Retrieve chunks via the same raw Chroma collection used for ingest
+    (database.chroma_client) and answer with the LLM.
+    """
+    # Step 1: Default answer and sources when retrieval returns nothing
+    answer = "Not found in document"
+    sources = []
 
-    # Step 2: Load vector database (Chroma)
-    # This is where we stored our document knowledge as vectors
-    vector_db = Chroma(
-        persist_directory="./chroma_db",  # Path to our vector database
-        embedding_function=embeddings,    # Use our embedding model
+    # Step 2: Embed the user question (same embedding path as ingest / search_service)
+    query_embedding = get_embedding(question)
+
+    # Step 3: Query Chroma for the most similar stored chunks
+    raw = collection.query(
+        query_embeddings=[query_embedding],
+        n_results=max(1, RAG_TOP_K),
+        include=["documents", "metadatas"],
     )
 
-    # Step 3: Search top relevant chunks from vector database
-    # This retrieves the most relevant pieces of information based on the question
-    results = vector_db.similarity_search(
-        question, 
-        k=3
-    )  # Get top 3 relevant chunks
+    docs = raw.get("documents", [[]])[0] or []
+    metas = raw.get("metadatas", [[]])[0] or []
 
-    # Combine all retrieved chunks into one context string
-    context = "\n\n".join([doc.page_content for doc in results])
+    # Step 4: Exit with defaults if nothing matched; else merge chunk text into context
+    if not docs:
+        return {"answer": answer, "sources": sources}
 
+    context = "\n\n".join(docs)
 
-    # Step 4: Create LLM (AI model)
-    # llm = ChatOpenAI(
-    #     model="gpt-3.5-turbo",  # Use GPT-3.5 Turbo model
-    #     temperature=0.2,        # Lower temperature for more focused answers
-    # )
-
-    MODEL_NAME = os.getenv("MODEL_NAME", "gemini-2.5-flash")
-
-    llm = ChatGoogleGenerativeAI(
-        model = MODEL_NAME,
-        temperature = TEMPERATURE
-    )
-    
     # Step 5: Create prompt (instructions for AI)
     prompt = f"""
 You are a financial research assistant.
@@ -74,25 +57,39 @@ Question:
 {question}
 """
 
-    # Step 6: Generate answer
+    # Step 6: Create LLM (Gemini) that will draft the answer from the prompt
+    MODEL_NAME = os.getenv("MODEL_NAME", "gemini-2.5-flash")
+
+    llm = ChatGoogleGenerativeAI(
+        model = MODEL_NAME,
+        temperature = TEMPERATURE
+    )
+
+    # Step 7: Generate answer
     response = llm.invoke(prompt)
 
-    # Print answer    
+    # Step 8: Print sources and answer (helpful when running as a script)
     print("\nSources:\n")
 
-    for i, doc in enumerate(results):
+    for i, doc in enumerate(docs):
         print(f"Source {i+1}:\n")
-        print(doc.page_content[:300])
+        print(doc[:300])
 
     print("\nAI Answer:\n")
     print(response.content)
 
+    # Step 9: Shape structured sources for API / callers
+    sources = [
+        {"text": doc[:500], "metadata": meta if meta is not None else {}}
+        for doc, meta in zip(docs, metas)
+    ]
+
+    # Step 10: Return answer text and source snippets + metadata
     return {
-        "answer": answer,
-        "sources": sources
+        "answer": response.content,
+        "sources": sources,
     }
 
-# Run test
+
 if __name__ == "__main__":
-    ask_question("What are the risks mentioned by the company?")
-    
+    ask_question("Revenue?")

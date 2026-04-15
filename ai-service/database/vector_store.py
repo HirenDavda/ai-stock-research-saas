@@ -1,5 +1,9 @@
 from datetime import datetime
+
 from database.mongo import get_database
+from database.chroma_client import collection
+
+from services.embedding_service import get_embedding_model
 
 COLLECTION_NAME = "document_chunks"
 
@@ -9,41 +13,24 @@ def get_chunks_collection():
 
     return db[COLLECTION_NAME]
 
-def save_document_chunks(
-    document_id: str,
-    chunks: list,
-    embeddings: list
-):
+def save_document_chunks(document_id, chunks, embeddings, metadata):
     """
-    Store chunks and embeddings in MongoDB
+    Save document chunks and embeddings to ChromaDB
     """
+
+    ids = [f"{document_id}_{i}" for i in range(len(chunks))]
+    embeddings = get_embedding_model().encode(chunks).tolist()
     
-    collection = get_chunks_collection()
-
-    records = []
-
-    for index, (chunk, embedding) in enumerate(
-        zip(chunks, embeddings)
-    ):
-
-        record = {
-            "document_id": document_id,
-            "chunk_index": index,
-            "text": chunk,
-            "embedding": embedding,
-            "created_at": datetime.utcnow()
-        }
-
-        records.append(record)
-
-    result = collection.insert_many(records)
-
-    print(
-        "Chunks stored:",
-        len(result.inserted_ids)
+    collection.add(
+        documents=chunks,
+        embeddings=embeddings,
+        ids=ids,
+        metadatas=metadata
     )
-
-    return result.inserted_ids
+    
+    print("Chunks saved to ChromaDB")
+    
+    return ids
 
 
 def create_indexes():
