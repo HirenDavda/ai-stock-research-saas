@@ -7,12 +7,13 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 
+from api.routes import api_router
+
 from database.mongo import (
     connect_to_mongo,
     close_mongo_connection
 )
 
-from api import router
 from services.llm import get_llm
 from config import (
     MODEL_NAME,
@@ -43,7 +44,6 @@ logger = logging.getLogger(__name__)
 # -----------------------------------------------------
 # Startup Initialization (Performance Optimization)
 # -----------------------------------------------------
-
 
 @asynccontextmanager
 async def lifespan(app):
@@ -99,6 +99,10 @@ app = FastAPI(
     lifespan=lifespan
 )
 
+# Just one line to rule them all!
+app.include_router(api_router, prefix="/api")
+
+
 @app.on_event("startup")
 def startup_event():
     print("Starting application...")
@@ -117,10 +121,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-# Include API routes
-app.include_router(router, prefix="/api")
-
 
 # -----------------------------------------------------
 # Request Models
