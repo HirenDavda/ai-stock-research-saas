@@ -1,24 +1,93 @@
-# Active Task
+# Active Task — AI Stock Research SaaS
 
-Current Work:
+## Current Phase
 
-Fix runtime errors during vector database migration from MongoDB Atlas to ChromaDB.
+Phase 1 — Core RAG Engine Stabilization
 
-Focus:
+Status: COMPLETE
 
-- ✅ Stabilize `ai-service/scripts/test_search.py` execution (now passes)
-- ✅ Resolve import and module path errors in `ai-service/scripts/test_*.py` (added minimal `sys.path` bootstrap where missing)
-- ✅ Ensure local ChromaDB search works end-to-end via:
-  - `ai-service/scripts/test_vector_store.py` (insert)
-  - `ai-service/scripts/test_search.py` (query)
-- Next blocker: **API service end-to-end run depends on correct Python environment**
-  - Current error when importing `ai-service/main.py`: `ModuleNotFoundError: fastapi`
-  - Fix: create/activate venv and `pip install -r ai-service/requirements.txt`
-- Maintain compatibility for future MongoDB Atlas migration
+---
 
-Rule:
+## Recently Completed Tasks
 
-Fix current error only.
-No refactor.
-No redesign.
-No function changes.
+### Infrastructure Hardening
+
+* Centralized logging system implemented
+* Health check endpoint added
+* Basic error handling added to ask_question()
+* API smoke test script created
+* End-to-end validation completed
+
+---
+
+## Verification Results
+
+Smoke Test Status:
+
+Health endpoint: PASS (200)
+Document upload: PASS (200)
+Ask question: PASS (200)
+
+System Stability: VERIFIED
+
+---
+
+## Current System Capability
+
+The system can now:
+
+* Accept document uploads
+* Generate embeddings locally
+* Store vectors in Chroma
+* Retrieve relevant chunks
+* Generate answers using Gemini
+* Return structured sources
+* Log requests and errors
+* Respond to health checks
+* Handle runtime failures safely
+
+---
+
+## Immediate Next Tasks
+
+1. Node.js Backend Integration
+
+Goal:
+
+Node server calls Python AI service API
+
+---
+
+## Next Engineering Steps (Planned)
+
+* Add request logging middleware
+* Add request ID tracking
+* Add timeout handling
+* Add structured logging format
+
+---
+
+## Milestone Definition
+
+Next Milestone:
+
+Node ↔ Python Integration
+
+Success Criteria:
+
+* Node server successfully calls Python API
+* API returns response to Node
+* Error handling works across services
+* Logging shows full request flow
+
+---
+
+## System Maturity Level
+
+Current Stage:
+
+Backend Service — Production Ready (Local Development)
+
+Next Stage:
+
+Multi-service SaaS Architecture
