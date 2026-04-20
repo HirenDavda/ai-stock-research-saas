@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const axios = require("axios");
 
+const { success, failure } = require("../utils/apiResponse");
 
 router.get("/", (req, res) => {
     res.send("Chat API is running. Use POST request.");
@@ -12,7 +13,9 @@ router.post("/", async (req, res) => {
     console.log("CHAT ROUTE HIT");
 
     try {
-        const { question } = req.body;
+        const { question, documentId } = req.body;
+
+        console.log("Request ID:", req.requestId);
 
         // 1️⃣ Validate input
         if (!question) {
@@ -22,6 +25,7 @@ router.post("/", async (req, res) => {
         }
         
         console.log("User question:", question);
+        console.log("Document ID:", documentId);
 
         // 2️⃣ Use environment variable
         const PYTHON_SERVICE_URL =
@@ -30,7 +34,8 @@ router.post("/", async (req, res) => {
         const response = await axios.post(
             `${PYTHON_SERVICE_URL}/api/chat/ask`,
             {
-                question: question
+                question: question,
+                document_id: documentId || null
             },
             {
                 timeout: 60000
@@ -39,7 +44,13 @@ router.post("/", async (req, res) => {
 
         console.log("AI RESPONSE RECEIVED");
 
-        res.json(response.data);
+        return res.json({
+            success: true,
+            data: response.data,
+            error: null,
+            requestId: req.requestId
+        });
+
     } catch (error) {
         
         console.error("Error:", error.message);
@@ -48,11 +59,14 @@ router.post("/", async (req, res) => {
         const message =
             error?.response?.data?.detail ||
             error.message ||
-            "AI service failed";
-
-        res.status(500).json({ 
-            error: message
-        })
+            "AI service failed to process question";
+        
+        return res.status(500).json({
+            success: false,
+            data: null,
+            error: message,
+            requestId: req.requestId
+        });
     }
 });
 

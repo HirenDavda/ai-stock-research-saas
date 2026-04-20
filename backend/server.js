@@ -19,6 +19,16 @@ app.use(cors());
 // Allow server to understand JSON data sent in requests
 app.use(express.json());
 
+app.use((req, res, next) => {
+  const requestId = uuidv4();
+
+  req.requestId = requestId;
+
+  console.log(`[REQUEST] ${requestId} ${req.method} ${req.url}`);
+
+  next();
+});
+
 // Chat route
 app.use("/chat", chatRoute);
 
@@ -230,6 +240,18 @@ app.get('/api/documents/:documentId', async (req, res) => {
 
 app.get("/", (req, res) => {
   res.send("Root working");
+});
+
+app.get("/health", (req, res) => {
+  res.json({
+    success: true,
+    data: {
+        status: "ok",
+        service: "node-backend",
+        timestamp: new Date().toISOString()
+    },
+    error: null
+  });
 });
 
 app.listen(PORT, () => {
